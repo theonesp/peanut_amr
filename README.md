@@ -25,7 +25,7 @@ Block 3: Carbapenem-resistant (meropenem and imipenem)
 
 - Pseudomonas aeruginosa
 - Acinetobacter baumannii
-- 
+  
 Block 4: Trimethoprim/sulfamethoxazole-resistant
 
 - Stenotrophomonas maltophilia
@@ -34,7 +34,7 @@ Block 5: Vancomycin-resistant
 
 - Enterococcus faecium
 
-- Block 6: Oxacillin-resistant
+Block 6: Oxacillin-resistant
 
 - Staphylococcus aureus
 
