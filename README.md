@@ -38,7 +38,9 @@ Block 6: Oxacillin-resistant
 
 - Staphylococcus aureus
 
+## Inclusion and Exclusion criteria
 
+![Inclusion and Exclusion criteria](inclusion_exclusion_criteria.PNG)
 
 
 
