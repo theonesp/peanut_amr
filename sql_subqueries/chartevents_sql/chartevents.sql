@@ -1,0 +1,1 @@
+SELECT * FROM `physionet-data.mimiciv_icu.chartevents` derived;

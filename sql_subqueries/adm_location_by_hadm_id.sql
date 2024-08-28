@@ -1,0 +1,1 @@
+SELECT hadm_id, admission_location FROM `physionet-data.mimiciv_hosp.admissions` WHERE  hadm_id in (SELECT hadm_id FROM `peanutproject-2024.stay_id_selection_peanut.stay_id_selection`) 

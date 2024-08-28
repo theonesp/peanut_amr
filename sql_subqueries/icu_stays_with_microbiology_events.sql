@@ -1,0 +1,92 @@
+SELECT * FROM `physionet-data.mimiciv_derived.icustay_detail` icu WHERE 
+subject_id IN (SELECT subject_id FROM `peanutproject-2024.stay_id_selection_peanut.stay_id_selection`);WITH RankedMicrobiologyEvents AS (
+  SELECT
+    hadm_id,
+    org_name,
+    ab_name,
+    microevent_id,
+    interpretation,
+    charttime,
+    storetime,
+    spec_type_desc,
+    subject_id,
+    ROW_NUMBER() OVER (
+      PARTITION BY hadm_id, org_name, ab_name
+      ORDER BY
+        CASE WHEN interpretation = 'I' THEN 'S' ELSE interpretation END, -- Cambiar 'I' a 'S'
+        charttime ASC -- Ordenar de forma ascendente para obtener el más antiguo primero
+    ) AS RowNum
+  FROM
+    `physionet-data.mimiciv_hosp.microbiologyevents`
+  WHERE
+    interpretation IN ('R', 'S', 'I') -- Incluyendo 'I' para luego convertirlo a 'S'
+    AND charttime IS NOT NULL -- Excluir NaT (Not a Time)
+    AND interpretation != 'P' -- Excluir 'P'
+     AND hadm_id IS NOT NULL
+)
+, FilteredMicrobiologyEvents AS (
+  SELECT
+    hadm_id,
+    org_name,
+    ab_name,
+    subject_id,
+    microevent_id,
+    spec_type_desc,
+    storetime,
+    CASE WHEN interpretation = 'I' THEN 'S' ELSE interpretation END AS interpretation,
+    charttime,
+  FROM RankedMicrobiologyEvents
+  WHERE RowNum = 1 -- Seleccionar la fila con el índice más bajo
+)
+
+, ICUStayClosest AS (
+  SELECT
+    me.hadm_id,
+    me.org_name,
+    me.ab_name,
+    me.charttime,
+    microevent_id,
+    me.interpretation,
+    me.spec_type_desc,
+    me.storetime,
+    icu.stay_id,
+    icu.gender,
+    icu.dod,
+    dischtime,icu.los_hospital,icu.admission_age,icu.race,
+    hospital_expire_flag,icu.hospstay_seq,icu.first_hosp_stay,
+    icu.los_icu,icu.icustay_seq,icu.first_icu_stay,
+    icu.icu_intime,
+    icu.icu_outtime,
+    icu.subject_id,
+    icu.admittime,
+
+    ROW_NUMBER() OVER (PARTITION BY me.hadm_id, me.org_name, me.ab_name, me.charttime ORDER BY ABS(DATETIME_DIFF(me.charttime, icu.icu_intime, MINUTE))) AS RowNum
+  FROM
+    FilteredMicrobiologyEvents me
+  INNER  JOIN
+    `physionet-data.mimiciv_derived.icustay_detail` icu
+  ON
+    me.hadm_id = icu.hadm_id
+    AND me.charttime >= icu.icu_intime
+    AND me.charttime <= icu.icu_outtime -- Añadir esta condición
+)
+, MergedData AS (
+  SELECT
+    icu_closest.*
+  FROM
+    FilteredMicrobiologyEvents fme
+  INNER JOIN
+    ICUStayClosest icu_closest
+  ON
+    fme.hadm_id = icu_closest.hadm_id
+    AND fme.org_name = icu_closest.org_name
+    AND fme.ab_name = icu_closest.ab_name
+    AND icu_closest.RowNum = 1
+)
+
+
+-- Devolver el resultado final seleccionando solo las filas con row_num igual a 1
+SELECT
+  md.*,
+FROM
+  MergedData md
