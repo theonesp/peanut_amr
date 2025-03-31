@@ -1,12 +1,12 @@
 WITH hadm_ids AS (
     SELECT 
-        hadm_id,
+        DISTINCT hadm_id,  -- Asegura que cada hadm_id y subject_id sean únicos
         subject_id
     FROM 
         `peanutproject-2024.stay_id_selection_peanut.stay_id_selection`
 ),
 radiology_matches AS (
-    SELECT
+    SELECT DISTINCT  -- Elimina duplicados
         r.hadm_id
     FROM
         `physionet-data.mimiciv_note.radiology` r
@@ -43,7 +43,7 @@ radiology_matches AS (
         OR LOWER(r.text) LIKE '%betalactmc%'
 ),
 discharge_matches AS (
-    SELECT
+    SELECT DISTINCT  -- Elimina duplicados
         d.hadm_id
     FROM
         `physionet-data.mimiciv_note.discharge` d
@@ -92,3 +92,4 @@ LEFT JOIN
     radiology_matches rm ON h.hadm_id = rm.hadm_id
 LEFT JOIN
     discharge_matches dm ON h.hadm_id = dm.hadm_id;
+

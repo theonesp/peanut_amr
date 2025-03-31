@@ -1,0 +1,1 @@
+SELECT * FROM `peanutproject-2024.stay_id_selection_peanut.stay_id_MDRO_hypothesis`;
