@@ -1,4 +1,9 @@
--- stay_id selection previous inclusion/exclusion criteria
+-- This query generates a dataset that links antimicrobial susceptibility test results to ICU stays,
+-- identifying the first relevant microbiology event per antibiotic-organism pair (per hospital admission),
+-- and associating it with the ICU stay during which the sample was collected (based on charttime).
+-- This enables the calculation of Time to Susceptibility (TTS) during ICU admission periods.
+-- The resulting view is used in BigQuery to constrain all subsequent extractions to data occurring
+-- before the suspicion time during the ICU stay.
 
 WITH RankedMicrobiologyEvents AS (
   SELECT
